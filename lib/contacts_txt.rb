@@ -9,28 +9,34 @@ class ContactsTxt
 
   attr_reader :to_s
   
-  def initialize(filename='contacts.txt', path: '.', \
-                                          fields: %w(tags email address notes))
+  def initialize(raw_filename='contacts.txt', path: File.dirname(raw_filename), \
+                        fields: %w(mobile email dob tags address notes))
     @fields  = %w(fullname firstname lastname tel) | fields
-    @filename, @path = filename, path
     
-    fpath = File.join(path, filename)
+    @path = path    
+    @filename =  path == '.' ? raw_filename : File.basename(raw_filename)
+
+    fpath = File.join(path, @filename)
     
-    @dx = if File.exists?(fpath) then    
-      import_to_dx(File.read(fpath))
-    else
-      new_dx()
-    end
+    @dx = File.exists?(fpath) ? import_to_dx(File.read(fpath)) : new_dx()
+
   end
   
   def dx()
     @dx
+  end
+  
+  # returns a Dynarex object
+  #  
+  def email_list()
+    @dx.filter {|x| x.email.length > 0}
   end
 
   def save(filename=@filename)
     
     s = dx_to_s(@dx, title: File.basename(filename) )
     File.write File.join(@path, filename), s
+    @dx.save File.join(@path, filename.sub(/\.txt$/,'.xml'))
         
   end
   
