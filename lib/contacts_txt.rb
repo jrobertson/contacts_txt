@@ -25,12 +25,16 @@ class ContactsTxt
   def dx()
     @dx
   end
-  
+
   # returns a Dynarex object
-  #  
+  #    
   def email_list()
     @dx.filter {|x| x.email.length > 0}
   end
+  
+  def mobile_list()
+    @dx.filter {|x| x.mobile.length > 0}
+  end  
 
   def save(filename=@filename)
     
