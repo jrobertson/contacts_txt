@@ -9,7 +9,8 @@ class ContactsTxt
 
   attr_reader :to_s
   
-  def initialize(src=nil, fields: %w(mobile email dob tags address notes), 
+  def initialize(src=nil, fields: %w(role organisation mobile 
+                 sms email dob tags address notes), 
                  username: nil, password: nil)
     
     @fields  = %w(fullname firstname lastname tel) | fields
@@ -36,6 +37,16 @@ class ContactsTxt
   def dx()
     @dx
   end
+  
+  def find_by_name(raw_name)
+
+    name = Regexp.new raw_name
+    
+    @dx.all.select do |x| 
+      x.fullname =~ name or x.firstname =~ name or x.lastname =~ name
+    end
+
+  end  
 
   # returns a Dynarex object
   #    
