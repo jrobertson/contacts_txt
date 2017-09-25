@@ -9,16 +9,27 @@ class ContactsTxt
 
   attr_reader :to_s
   
-  def initialize(raw_filename='contacts.txt', path: File.dirname(raw_filename), \
-                        fields: %w(mobile email dob tags address notes))
+  def initialize(src=nil, fields: %w(mobile email dob tags address notes), 
+                 username: nil, password: nil)
+    
     @fields  = %w(fullname firstname lastname tel) | fields
-    
-    @path = path    
-    @filename =  path == '.' ? raw_filename : File.basename(raw_filename)
 
-    fpath = File.join(path, @filename)
+    txt, type = if src then
+      RXFHelper.read(src, username: username, password: password)
+    else
+      ['', :unknown]
+    end
     
-    @dx = File.exists?(fpath) ? import_to_dx(File.read(fpath)) : new_dx()
+    case type
+    when :file
+      @path, @filename =  File.dirname(src), File.basename(src)
+    when :url
+      @path, @filename = '.', File.basename(src)
+    when :unknown
+      @path, @filename = '.', 'contacts.txt'
+    end
+    
+    @dx = txt.lines.length > 1 ? import_to_dx(txt) : new_dx()
 
   end
   
@@ -50,7 +61,7 @@ class ContactsTxt
 
   private
 
-  def dx_to_s(dx, title: File.basename(@filename))
+  def dx_to_s(dx)
     
     rows = dx.all.map do |row|
       
@@ -64,16 +75,43 @@ class ContactsTxt
       ([fullname] + a.map {|x| x.join(': ') }).join("\n")
     end
     
-    "%s\n%s\n\n%s" % [title, '=' * title.length, rows.join("\n\n")]
+    "<?contacts fields='%s'?>\n\n%s" % [@fields, rows.join("\n\n")]
     
   end
   
   def import_to_dx(raw_s)
 
-    s = raw_s.lstrip.lines[2..-1].join.strip.\
-               split(/\s+(?=^[\w\s]+$)/).map {|x| 'fullname: ' + x }.join("\n")
+    s = if raw_s =~ /<?contacts / then
 
-    new_dx().import  "--+\n" + s
+      raw_contacts = raw_s.clone
+      s2 = raw_contacts.slice!(/<\?contacts [^>]+\?>/)
+
+      attributes = %w(fields delimiter id).inject({}) do |r, keyword|
+        found = s2[/(?<=#{keyword}=['"])[^'"]+/]
+        found ? r.merge(keyword.to_sym => found) : r
+      end
+      
+      h = {
+        fields: @fields.join(', '), 
+      }.merge attributes          
+
+      @fields = h[:fields].split(/ *, */)      
+
+      if h[:root] then
+        "\n\n" + h[:root] + "\n" + 
+          raw_contacts.strip.lines.map {|line| '  ' + line}.join
+      else
+        raw_contacts
+      end
+      
+    else
+      
+      raw_s.lstrip.lines[2..-1].join.strip
+
+    end
+
+    new_dx().import  "--+\n" + s.split(/\s+(?=^[\w\s]+$)/)\
+      .map {|x| 'fullname: ' + x }.join("\n")    
     
   end
   
