@@ -38,13 +38,31 @@ class ContactsTxt
     @dx
   end
   
+  def find_by_mobile(raw_number, countrycode='44')
+
+    number = Regexp.new number.sub(/^(?:0|#{countrycode})/,'').gsub(/ */,'')
+    
+    @dx.all.find {|x| x.mobile.gsub(/ */,'') =~ number }    
+
+  end  
+  
   def find_by_name(raw_name)
 
-    name = Regexp.new raw_name
+    name = Regexp.new raw_name,  Regexp::IGNORECASE
     
     @dx.all.select do |x| 
       x.fullname =~ name or x.firstname =~ name or x.lastname =~ name
     end
+
+  end  
+  
+  def find_by_sms(raw_number, countrycode='44')
+
+    number = Regexp.new raw_number\
+        .sub(/^(?:0|#{countrycode})/,'').gsub(/ */,'')
+    
+    @dx.all.find {|x| x.sms.gsub(/ */,'') =~ number \
+                  or x.mobile.gsub(/ */,'') =~ number }    
 
   end  
 
@@ -60,7 +78,7 @@ class ContactsTxt
 
   def save(filename=@filename)
     
-    s = dx_to_s(@dx, title: File.basename(filename) )
+    s = dx_to_s(@dx)
     File.write File.join(@path, filename), s
     @dx.save File.join(@path, filename.sub(/\.txt$/,'.xml'))
         
