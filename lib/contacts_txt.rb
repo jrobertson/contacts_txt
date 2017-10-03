@@ -139,7 +139,7 @@ class ContactsTxt
 
     end
 
-    new_dx().import  "--+\n" + s.split(/\s+(?=^[\w\s]+$)/)\
+    new_dx().import  "--+\n" + s.split(/\s+(?=^[\w\s\(\)]+$)/)\
       .map {|x| 'fullname: ' + x }.join("\n")    
     
   end
