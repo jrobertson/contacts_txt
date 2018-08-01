@@ -6,11 +6,12 @@ require 'dynarex'
 
 
 class ContactsTxt
+  include RXFHelperModule
 
   attr_reader :to_s
   
   def initialize(src=nil, fields: %w(role organisation mobile 
-                 sms email dob tags address notes), 
+                 sms email dob tags address notes note), 
                  username: nil, password: nil)
     
     @fields  = %w(fullname firstname lastname tel) | fields
@@ -26,6 +27,8 @@ class ContactsTxt
       @path, @filename =  File.dirname(src), File.basename(src)
     when :url
       @path, @filename = '.', File.basename(src)
+    when :dfs
+      @path, @filename =  File.dirname(src), File.basename(src)
     when :unknown
       @path, @filename = '.', 'contacts.txt'
     end
@@ -79,7 +82,7 @@ class ContactsTxt
   def save(filename=@filename)
     
     s = dx_to_s(@dx)
-    File.write File.join(@path, filename), s
+    FileX.write File.join(@path, filename), s
     @dx.save File.join(@path, filename.sub(/\.txt$/,'.xml'))
         
   end
