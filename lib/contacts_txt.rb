@@ -51,7 +51,7 @@ class ContactsTxt
   
   def find_by_name(raw_name)
 
-    name = Regexp.new raw_name,  Regexp::IGNORECASE
+    name = Regexp.new '\b' + raw_name + '\b',  Regexp::IGNORECASE
     
     @dx.all.select do |x| 
       x.fullname =~ name or x.firstname =~ name or x.lastname =~ name
