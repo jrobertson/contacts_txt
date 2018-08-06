@@ -12,8 +12,9 @@ class ContactsTxt
   
   def initialize(src=nil, fields: %w(role organisation mobile 
                  sms email dob tags address notes note), 
-                 username: nil, password: nil)
+                 username: nil, password: nil, debug: true)
     
+    @debug = debug
     @fields  = %w(fullname firstname lastname tel) | fields
 
     txt, type = if src then
@@ -51,7 +52,8 @@ class ContactsTxt
   
   def find_by_name(raw_name)
 
-    name = Regexp.new '\b' + raw_name + '\b',  Regexp::IGNORECASE
+    name = Regexp.new "\b#{raw_name}\b|#{raw_name}",  Regexp::IGNORECASE
+    puts 'name: ' + name.inspect if @debug
     
     @dx.all.select do |x| 
       x.fullname =~ name or x.firstname =~ name or x.lastname =~ name
