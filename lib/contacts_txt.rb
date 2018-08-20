@@ -44,7 +44,7 @@ class ContactsTxt
   
   def find_by_mobile(raw_number, countrycode='44')
 
-    number = Regexp.new number.sub(/^(?:0|#{countrycode})/,'').gsub(/ */,'')
+    number = Regexp.new raw_number.sub(/^(?:0|#{countrycode})/,'').gsub(/ */,'')
     
     @dx.all.find {|x| x.mobile.gsub(/ */,'') =~ number }    
 
