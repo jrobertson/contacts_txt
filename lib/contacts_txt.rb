@@ -11,8 +11,8 @@ class ContactsTxt
   attr_reader :to_s
   
   def initialize(src=nil, fields: %w(role organisation mobile 
-                 sms email dob tags address notes note), 
-                 username: nil, password: nil, debug: true)
+                 sms email dob tags address notes note mobile2 ), 
+                 username: nil, password: nil, debug: false)
     
     @debug = debug
     @fields  = %w(fullname firstname lastname tel) | fields
@@ -40,6 +40,12 @@ class ContactsTxt
   
   def dx()
     @dx
+  end
+  
+  def find_by_id(id)
+    
+    @dx.find_by_id id
+    
   end
   
   def find_by_mobile(raw_number, countrycode='44')
