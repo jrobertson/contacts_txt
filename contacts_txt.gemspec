@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'contacts_txt'
-  s.version = '0.2.8'
+  s.version = '0.2.9'
   s.summary = 'Reads a contacts.txt file'
   s.authors = ['James Robertson']
   s.files = Dir['lib/contacts_txt.rb']

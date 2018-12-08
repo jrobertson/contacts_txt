@@ -83,6 +83,14 @@ class ContactsTxt
     @dx.filter {|x| x.email.length > 0}
   end
   
+  def list_names()
+    
+    @dx.all.inject([]) do |r, x|
+      x.fullname.length >= 1 ? r << x.fullname : r
+    end
+
+  end
+  
   def mobile_list()
     @dx.filter {|x| x.mobile.length > 0}
   end  
