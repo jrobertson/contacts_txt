@@ -50,9 +50,9 @@ class ContactsTxt
   
   def find_by_mobile(raw_number, countrycode='44')
 
-    number = Regexp.new raw_number.sub(/^(?:0|#{countrycode})/,'').gsub(/ */,'')
+    number = Regexp.new raw_number.sub(/^(?:0|#{countrycode})/,'').gsub(/[ -]*/,'')
     
-    @dx.all.find {|x| x.mobile.gsub(/ */,'') =~ number }    
+    @dx.all.find {|x| x.mobile.gsub(/[ -]*/,'') =~ number }    
 
   end  
   
@@ -70,10 +70,10 @@ class ContactsTxt
   def find_by_sms(raw_number, countrycode='44')
 
     number = Regexp.new raw_number\
-        .sub(/^(?:0|#{countrycode})/,'').gsub(/ */,'')
+        .sub(/^(?:0|#{countrycode})/,'').gsub(/[ -]*/,'')
     
-    @dx.all.find {|x| x.sms.gsub(/ */,'') =~ number \
-                  or x.mobile.gsub(/ */,'') =~ number }    
+    @dx.all.find {|x| x.sms.gsub(/[ -]*/,'') =~ number \
+                  or x.mobile.gsub(/[ -]*/,'') =~ number }    
 
   end  
 
