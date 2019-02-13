@@ -76,6 +76,24 @@ class ContactsTxt
                   or x.mobile.gsub(/[ -]*/,'') =~ number }    
 
   end  
+  
+  # find using the tel, mobile, or mobile2 fields 
+  #
+  def find_by_telno(raw_number)
+
+    number = Regexp.new raw_number.gsub(/[ -]*/,'')
+    
+    @dx.all.find do |x|
+            
+      numbers = %i(tel mobile mobile2).map do |y|
+        x.method(y).call.gsub(/[ -]*/,'') if x.respond_to? y
+      end
+      
+      puts 'numbers: ' + numbers.inspect if @debug
+      numbers.grep(number).any?
+    end
+
+  end    
 
   # returns a Dynarex object
   #    
