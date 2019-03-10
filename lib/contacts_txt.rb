@@ -188,3 +188,46 @@ class ContactsTxt
   end
 
 end
+
+class ContactsTxtAgent < ContactsTxt
+  
+  def find_mobile_by_name(s)
+    
+    r = find_by_name(s).first
+    
+    numbers = [r.sms.empty? ? r.mobile : r.sms, r.mobile].uniq\
+        .map {|x| x.sub(/\([^\)]+\)/,'').strip}
+    
+    h = {}
+    h[:msg] = if numbers.length > 1 then
+      "The SMS number for %s is %s and the mobile number is %s" % \
+          [r.fullname, *numbers]
+    elsif numbers.first.length > 0 then
+      "The mobile number for %s is %s" % [r.fullname, numbers.first]
+    elsif r.tel.length > 0 then
+      "I don't have a mobile number, but the landline telephone " + \
+          "number for %s is %s" % [r.fullname, r.tel]
+    else
+      "I don't have a telephone number for " + r.fullname
+    end
+
+    h[:tags] = r.tags.to_s
+    h    
+  end
+  
+  def find_tel_by_name(s)
+    
+    r = find_by_name(s).first
+    
+    h = {}
+    
+    if r.tel.empty? then
+      return find_mobile_by_name(s)
+    else
+      h[:msg] = "The telephone number for %s is %s" % [r.fullname, r.tel]
+    end
+    
+    h[:tags] = r.tags.to_s
+    h        
+  end  
+end
