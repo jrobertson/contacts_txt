@@ -38,6 +38,10 @@ class ContactsTxt
 
   end
   
+  def all()
+    @dx.all
+  end
+  
   def dx()
     @dx
   end
@@ -56,13 +60,24 @@ class ContactsTxt
 
   end  
   
-  def find_by_name(raw_name)
+  def find_by_name(s)
 
+    # Appending a hashtag to the name can help with finding the specific record
+    # e.g. 'Peter#plumber' or 'Peter #plumber' 
+    
+    raw_name, tag = s.split('#',2).map(&:strip)
+    
     name = Regexp.new "\b#{raw_name}\b|#{raw_name}",  Regexp::IGNORECASE
     puts 'name: ' + name.inspect if @debug
     
-    @dx.all.select do |x| 
+    a = @dx.all.select do |x| 
       x.fullname =~ name or x.firstname =~ name or x.lastname =~ name
+    end
+    
+    if tag then
+      a.find {|x| x.tags.split.map(&:downcase).include? tag.downcase } 
+    else
+      a
     end
 
   end  
@@ -113,12 +128,68 @@ class ContactsTxt
     @dx.filter {|x| x.mobile.length > 0}
   end  
 
+  def multi_tel_index()
+
+    a = @dx.all.map do |x|
+
+      tel = %i(tel mobile mobile2).detect do |name|
+        !x.method(name).call.empty?
+      end
+      next unless tel
+      "%s %s" % [x.fullname, x.method(tel).call]
+    end.compact 
+
+
+    # group by first name
+    r = a.group_by {|x| x[0]}
+
+    a2 = a.clone
+
+    # group by last name
+    r2 = a.group_by {|x| x.split(/ /,2).last[0]}
+    c = r2.merge(r)
+
+    c.each do |k, v|
+
+      puts "k: %s v: %s" % [k, v]
+      v.concat(r2[k]) if r2[k]  
+      
+    end
+
+    h = c.sort.each {|k,v| v.uniq!}.to_h
+
+    out = []
+
+    h.each do |k,v|
+
+      out << ' ' + (' ' * 30) + k
+
+      v.each do |x|
+
+        name, phone = x.split(/(?=\d)/,2)
+        out << "\n" + (name.length >= 29 ? name[0..26] + '...' : name)
+        tel = (' ' + ' ' * (26 - phone.length)) + 't: ' + phone
+        out <<  tel + "\n"
+        out << ('-' * 30) 
+
+      end  
+
+    end
+
+    puts out.join("\n")
+
+  end
+
   def save(filename=@filename)
     
     s = dx_to_s(@dx)
     FileX.write File.join(@path, filename), s
     @dx.save File.join(@path, filename.sub(/\.txt$/,'.xml'))
         
+  end
+  
+  def to_dx()
+    @dx
   end
   
   def to_s()
@@ -193,7 +264,9 @@ class ContactsTxtAgent < ContactsTxt
   
   def find_mobile_by_name(s)
     
-    r = find_by_name(s).first
+    result = find_by_name(s)
+
+    r = validate(result)  
     
     numbers = [r.sms.empty? ? r.mobile : r.sms, r.mobile].uniq\
         .map {|x| x.sub(/\([^\)]+\)/,'').strip}
@@ -217,7 +290,8 @@ class ContactsTxtAgent < ContactsTxt
   
   def find_tel_by_name(s)
     
-    r = find_by_name(s).first
+    result = find_by_name(s)
+    r = validate(result)                    
     
     h = {}
     
@@ -229,5 +303,21 @@ class ContactsTxtAgent < ContactsTxt
     
     h[:tags] = r.tags.to_s
     h        
-  end  
+  end
+
+  private
+  
+  def validate(result)
+    
+    case result.class.to_s
+    when 'RecordX'
+      result
+    when 'Array'
+      result.first
+    when 'NilClass'
+      return "I couldn't find that name."
+    end    
+    
+  end
+  
 end
